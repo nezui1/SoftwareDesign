@@ -1,0 +1,13 @@
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+coverage.xml
+junit.xml
+lint.txt
+test-output.txt
+metrics.json
