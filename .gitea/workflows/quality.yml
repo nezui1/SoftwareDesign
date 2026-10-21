@@ -38,6 +38,9 @@ jobs:
         run: /tmp/scheduler-venv/bin/python scripts/metrics.py > metrics.json
       - name: Save quality reports
         uses: https://gitea.com/actions/upload-artifact@v3.2.2
+        env:
+          ACTIONS_RUNTIME_URL: https://git.is.ulstu.ru/api/actions_pipeline/
+          ACTIONS_RESULTS_URL: https://git.is.ulstu.ru
         with:
           name: quality-reports
           path: |
@@ -60,6 +63,9 @@ jobs:
           /tmp/scheduler-build-venv/bin/python -m build
       - name: Save package
         uses: https://gitea.com/actions/upload-artifact@v3.2.2
+        env:
+          ACTIONS_RUNTIME_URL: https://git.is.ulstu.ru/api/actions_pipeline/
+          ACTIONS_RESULTS_URL: https://git.is.ulstu.ru
         with:
           name: scheduler-package
           path: scheduler_lab/dist/
