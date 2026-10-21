@@ -1,0 +1,65 @@
+name: Scheduler quality
+
+on:
+  push:
+    branches: [main, lab5]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: https://gitea.com/actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check commit message
+        if: gitea.event_name == 'push' && gitea.ref_name != 'main'
+        run: |
+          git log -1 --format=%s | grep -Eq '^(feat|fix|docs|test|chore|refactor|ci)(\([a-z0-9_-]+\))?: .{3,}$'
+      - name: Install dependencies
+        working-directory: scheduler_lab
+        run: |
+          python -m venv /tmp/scheduler-venv
+          /tmp/scheduler-venv/bin/python -m pip install -e '.[dev]'
+      - name: Lint
+        working-directory: scheduler_lab
+        run: |
+          set -o pipefail
+          /tmp/scheduler-venv/bin/python -m ruff check . | tee lint.txt
+      - name: Test and coverage
+        working-directory: scheduler_lab
+        run: |
+          set -o pipefail
+          /tmp/scheduler-venv/bin/python -m pytest --junitxml=junit.xml --cov=scheduler --cov-branch --cov-report=xml --cov-report=term | tee test-output.txt
+      - name: Record metrics
+        working-directory: scheduler_lab
+        run: /tmp/scheduler-venv/bin/python scripts/metrics.py > metrics.json
+      - name: Save quality reports
+        uses: https://gitea.com/actions/upload-artifact@v3.2.2
+        with:
+          name: quality-reports
+          path: |
+            scheduler_lab/lint.txt
+            scheduler_lab/test-output.txt
+            scheduler_lab/junit.xml
+            scheduler_lab/coverage.xml
+            scheduler_lab/metrics.json
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: https://gitea.com/actions/checkout@v4
+      - name: Build package
+        working-directory: scheduler_lab
+        run: |
+          python -m venv /tmp/scheduler-build-venv
+          /tmp/scheduler-build-venv/bin/python -m pip install build
+          /tmp/scheduler-build-venv/bin/python -m build
+      - name: Save package
+        uses: https://gitea.com/actions/upload-artifact@v3.2.2
+        with:
+          name: scheduler-package
+          path: scheduler_lab/dist/
