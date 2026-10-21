@@ -1,0 +1,5 @@
+#!/bin/sh
+grep -Eq '^(feat|fix|docs|test|chore|refactor|ci)(\([a-z0-9_-]+\))?: .{3,}$' "$1" || {
+  echo 'Ожидается сообщение вида feat: краткое описание' >&2
+  exit 1
+}
