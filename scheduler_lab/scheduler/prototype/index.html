@@ -29,7 +29,7 @@
 Вт; 1; 103</textarea>
     <button id="generate">Составить расписание</button>
   </section>
-  <section class="card"><h2>Результат</h2><div id="result"><small>Нажмите кнопку, чтобы получить расписание.</small></div></section>
+  <section class="card"><h2>Результат</h2><div id="result"><small>Нажмите кнопку, чтобы получить расписание.</small></div><button id="export" hidden>Скачать CSV</button></section>
 </main>
 <script>
   const parse = (id, keys) => document.getElementById(id).value.trim().split(/\n+/).filter(Boolean).map(line => {
@@ -37,14 +37,31 @@
     if (values.length !== keys.length || values.some(value => !value)) throw new Error('Проверьте формат строки: ' + line);
     return Object.fromEntries(keys.map((key, index) => [key, key === 'period' ? Number(values[index]) : values[index]]));
   });
+  let currentSchedule = [];
+  const exportButton = document.getElementById('export');
+  exportButton.addEventListener('click', () => {
+    const columns = ['day','period','group','subject','teacher','room'];
+    const csv = [columns, ...currentSchedule.map(item => columns.map(key => item[key]))]
+      .map(row => row.map(value => '"' + String(value).replaceAll('"', '""') + '"').join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'}));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'schedule.csv';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
   document.getElementById('generate').addEventListener('click', async () => {
     const output = document.getElementById('result');
+    currentSchedule = [];
+    exportButton.hidden = true;
+    output.className = '';
     try {
       const lessons = parse('lessons', ['group', 'teacher', 'subject']);
       const slots = parse('slots', ['day', 'period', 'room']);
       const response = await fetch('/api/schedule', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lessons,slots})});
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
+      currentSchedule = data.schedule;
       const table = document.createElement('table');
       table.innerHTML = '<tr><th>День</th><th>Пара</th><th>Группа</th><th>Предмет</th><th>Преподаватель</th><th>Аудитория</th></tr>';
       for (const item of data.schedule) {
@@ -52,6 +69,7 @@
         for (const key of ['day','period','group','subject','teacher','room']) row.insertCell().textContent = item[key];
       }
       output.replaceChildren(table);
+      exportButton.hidden = false;
     } catch (error) { output.textContent = error.message; output.className = 'error'; }
   });
 </script>
