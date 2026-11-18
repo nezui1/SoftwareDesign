@@ -20,6 +20,10 @@ pytest --cov=scheduler --cov-branch --cov-report=term-missing
 python scripts/metrics.py
 ```
 
+Тесты включают проверки Python-ядра и HTTP API прототипа. На GitHub Actions
+после каждого запуска сохраняются `junit.xml`, `coverage.xml`, HTML-отчет
+`htmlcov/index.html` и `metrics.json` в артефакте `quality-reports`.
+
 ## Работа с исходным кодом
 
 Применяется упрощенный GitHub Flow: `main` хранит рабочую версию, а работа

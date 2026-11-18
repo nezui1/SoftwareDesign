@@ -34,7 +34,7 @@ jobs:
         working-directory: scheduler_lab
         run: |
           set -o pipefail
-          python -m pytest --junitxml=junit.xml --cov=scheduler --cov-branch --cov-report=xml --cov-report=term | tee test-output.txt
+          python -m pytest --junitxml=junit.xml --cov=scheduler --cov-branch --cov-report=xml --cov-report=html --cov-report=term | tee test-output.txt
       - name: Record metrics
         working-directory: scheduler_lab
         run: python scripts/metrics.py > metrics.json
@@ -47,6 +47,7 @@ jobs:
             scheduler_lab/test-output.txt
             scheduler_lab/junit.xml
             scheduler_lab/coverage.xml
+            scheduler_lab/htmlcov/
             scheduler_lab/metrics.json
 
   build:
