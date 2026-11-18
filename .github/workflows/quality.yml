@@ -2,7 +2,7 @@ name: Scheduler quality
 
 on:
   push:
-    branches: [main, lab5]
+    branches: [main, lab5, lab6, lab7, lab8]
     tags: ['v*']
   pull_request:
     branches: [main]

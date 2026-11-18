@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прототип генератора расписания</title>
+<style>
+  body{font:16px system-ui,sans-serif;background:#f4f7fb;color:#17243a;margin:0}
+  main{max-width:900px;margin:36px auto;padding:0 20px}
+  h1{font-size:30px;margin-bottom:8px} p{line-height:1.5}
+  .card{background:white;padding:22px;border-radius:14px;box-shadow:0 3px 18px #17243a12;margin:20px 0}
+  label{display:block;font-weight:600;margin:14px 0 5px}
+  textarea{width:100%;box-sizing:border-box;min-height:130px;border:1px solid #bac8d9;border-radius:7px;padding:10px;font:14px ui-monospace,monospace}
+  button{background:#2457ce;color:white;border:0;border-radius:7px;padding:12px 18px;font-weight:700;cursor:pointer;margin-top:16px}
+  button:hover{background:#193f9c} table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #dce5f0;text-align:left;padding:10px}
+  .error{color:#a52323;font-weight:600} small{color:#5b6880}
+</style>
+<main>
+  <h1>Генератор учебного расписания</h1>
+  <p>Прототип проверяет, можно ли распределить занятия без совпадений по группе, преподавателю и аудитории.</p>
+  <section class="card">
+    <label for="lessons">Занятия: группа; преподаватель; предмет</label>
+    <textarea id="lessons">А-101; Иванов; Математика
+А-101; Петров; Физика
+Б-202; Сидоров; Информатика</textarea>
+    <label for="slots">Слоты: день; номер пары; аудитория</label>
+    <textarea id="slots">Пн; 1; 101
+Пн; 1; 102
+Пн; 2; 101
+Вт; 1; 103</textarea>
+    <button id="generate">Составить расписание</button>
+  </section>
+  <section class="card"><h2>Результат</h2><div id="result"><small>Нажмите кнопку, чтобы получить расписание.</small></div></section>
+</main>
+<script>
+  const parse = (id, keys) => document.getElementById(id).value.trim().split(/\n+/).filter(Boolean).map(line => {
+    const values = line.split(';').map(value => value.trim());
+    if (values.length !== keys.length || values.some(value => !value)) throw new Error('Проверьте формат строки: ' + line);
+    return Object.fromEntries(keys.map((key, index) => [key, key === 'period' ? Number(values[index]) : values[index]]));
+  });
+  document.getElementById('generate').addEventListener('click', async () => {
+    const output = document.getElementById('result');
+    try {
+      const lessons = parse('lessons', ['group', 'teacher', 'subject']);
+      const slots = parse('slots', ['day', 'period', 'room']);
+      const response = await fetch('/api/schedule', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lessons,slots})});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      const table = document.createElement('table');
+      table.innerHTML = '<tr><th>День</th><th>Пара</th><th>Группа</th><th>Предмет</th><th>Преподаватель</th><th>Аудитория</th></tr>';
+      for (const item of data.schedule) {
+        const row = table.insertRow();
+        for (const key of ['day','period','group','subject','teacher','room']) row.insertCell().textContent = item[key];
+      }
+      output.replaceChildren(table);
+    } catch (error) { output.textContent = error.message; output.className = 'error'; }
+  });
+</script>
+</html>
