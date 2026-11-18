@@ -1,0 +1,28 @@
+{
+  "measured_at_utc": "2026-11-18T16:08:30.148911+00:00",
+  "branch": "lab8",
+  "commit": "29121b6594904419c066973ae5a1732c08c49feb",
+  "scope": "Только подтверждаемые показатели Git и файлов рабочей ветки",
+  "weekly_git_activity": {
+    "2026-W43": {
+      "commits": 8,
+      "added_lines": 339,
+      "deleted_lines": 33
+    },
+    "2026-W47": {
+      "commits": 5,
+      "added_lines": 321,
+      "deleted_lines": 3
+    }
+  },
+  "project_size": {
+    "source_files": 4,
+    "source_lines": 199,
+    "test_files": 2,
+    "test_lines": 127
+  },
+  "tracker_task_counts": null,
+  "tracker_burndown": null,
+  "actual_hours": null,
+  "unavailable_reason": "Экспорт задач и трудозатрат YouGile не предоставлен"
+}
